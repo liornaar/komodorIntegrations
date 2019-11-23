@@ -14,11 +14,10 @@ func main() {
 	log.WithFields(log.Fields{
 		"addr": config.Addr,
 	}).Info("Komodor Integrations starting")
-	dbClient, err := db.NewDbClient()
+	_, err := db.NewDbClient()
 	if err != nil {
 		log.WithError(err).Fatal("Failed to init db")
 	}
-	NewSlackClient()
 	s := InitHttpServer()
 	if err := http.ListenAndServe(config.Addr, s.Mux); err != nil {
 		log.WithError(err).WithField("addr", config.Addr).Fatal("Listen and serve")

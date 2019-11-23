@@ -1,46 +1,64 @@
 package handlers
 
 import (
-	"bytes"
 	"encoding/json"
 	"komodorIntegrations/db"
-	"net/http"
+	"time"
 )
 
 // SlackClient API for message sending
-type SlackClient struct {
-	Channel  string
-	TokenURL string
+type SlackHandler struct {
+	HandlerFunc func(string, *db.Details) error
+	TokenURL    string
 }
 
-// SendMessage sends slack message
-func SendSlackMessage(message string, details db.Details) error {
-	payload := map[string]string{
-		"channel":  "integrations",
-		"icon_url": slackbotIcon,
-		"username": slackbotUsername,
-		"text":     message,
+type SlackMessage struct {
+	Attachments []Attachment `json:"attachments"`
+}
+
+type Attachment struct {
+	Fallback   string  `json:"fallback"`
+	Color      string  `json:"color"`
+	Pretext    string  `json:"pretext"`
+	AuthorName string  `json:"author_name"`
+	AuthorLink string  `json:"author_link"`
+	AuthorIcon string  `json:"author_icon"`
+	Title      string  `json:"title"`
+	TitleLink  string  `json:"title_link"`
+	Text       string  `json:"text"`
+	ImageURL   string  `json:"image_url"`
+	ThumbURL   string  `json:"thumb_url"`
+	Footer     string  `json:"footer"`
+	FooterIcon string  `json:"footer_icon"`
+	Ts         int64   `json:"ts"`
+	Fields     []Field `json:"fields"`
+}
+
+type Field struct {
+	Title string `json:"title"`
+	Value string `json:"value"`
+	Short bool   `json:"short"`
+}
+
+func SetSlackMessage(req *Request) ([]byte, error) {
+	attachment := Attachment{
+		Color:      "#36a64f",
+		Pretext:    "Notification Alert from Komodor",
+		AuthorName: "Komodor.io",
+		AuthorLink: "https://komodor.io/",
+		Title:      req.Title,
+		TitleLink:  req.Link,
+		Text:       req.Details,
+		ImageURL:   "http://my-website.com/path/to/image.jpg",
+		ThumbURL:   "http://example.com/path/to/thumb.png",
+		Footer:     "Komodor API",
+		FooterIcon: "https://komodor.io/wp-content/uploads/2019/11/LogoMakr_6ZPQCs.png",
+		Ts:         time.Now().Unix(),
 	}
 
-	payloadStr, err := json.Marshal(payload)
-	if err != nil {
-		return err
+	message := SlackMessage{
+		Attachments: []Attachment{attachment},
 	}
 
-	req, err := http.NewRequest("POST", details.WebhookUrl, bytes.NewBuffer([]byte(payloadStr)))
-	if err != nil {
-		return err
-	}
-
-	req.Header.Set("Cache-Control", "no-cache")
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-
-	resp.Body.Close()
-	return nil
+	return json.Marshal(message)
 }

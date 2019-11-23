@@ -1,6 +1,7 @@
 package main
 
 import (
+	"komodorIntegrations/handlers"
 	"net/http"
 
 	log "github.com/sirupsen/logrus"
@@ -18,7 +19,7 @@ func InitHttpServer() *Server {
 
 func (s *Server) registerRoutes() {
 	s.Mux = http.NewServeMux()
-	s.Mux.HandleFunc("/incoming", incomingHandler())
+	s.Mux.HandleFunc("/incoming", handlers.IncomingHandler())
 	s.Mux.HandleFunc("/status", HandleStatus())
 }
 
